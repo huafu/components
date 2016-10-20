@@ -1,0 +1,26 @@
+{
+  "name": "huafu/components",
+  "description": "Organise UI components into standalone peices while keeping logic and UI separated - framework independent",
+  "version": "0.0.1",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Huafu Gandon",
+      "email": "huafu.gandon@gmail.com"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/huafu/components"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Huafu\\Components": "src"
+    }
+  },
+  "minimum-stability": "stable",
+  "require": {}
+}
