@@ -4,11 +4,11 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components\Html;
+namespace Huafu\Html\VirtualDom;
 
 /**
  * Class Node
- * @package Huafu\Components\Html
+ * @package Huafu\Html\VirtualDom
  */
 abstract class Node
 {
@@ -36,6 +36,8 @@ abstract class Node
   }
 
   /**
+   * @param array $args
+   * @param null $class
    * @return static
    */
   static protected function _create( array $args = NULL, $class = NULL )

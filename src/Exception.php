@@ -4,22 +4,13 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components;
+namespace Huafu;
 
 
 /**
  * Class Exception
- * @package Huafu\Components
+ * @package Huafu
  */
 class Exception extends \Exception
 {
-  /** @var Component */
-  public $component = NULL;
-
-
-  public function __construct( $message = '', $code = 0, Exception $previous = NULL, Component $component = NULL )
-  {
-    $this->component = $component;
-    parent::__construct($message, $code, $previous);
-  }
 }

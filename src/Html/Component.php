@@ -4,14 +4,15 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components;
+namespace Huafu\Html;
 
 
-use Huafu\Components\Html\CoreElement;
+use Huafu\Exception;
+use Huafu\Html\VirtualDom\CoreElement;
 
 /**
  * Class Component
- * @package Huafu\Components
+ * @package Huafu\Html
  */
 abstract class Component extends CoreElement
 {
@@ -31,13 +32,15 @@ abstract class Component extends CoreElement
   static private $_debug_mode = FALSE;
 
   /** @var string[] */
-  static protected $_merged_data_names = array();
+  static protected $_merged_data_names = array('_bind_attributes');
   /** @var bool */
   static protected $_is_public = NULL;
   /** @var string[] */
   static protected $_input_config = array();
   /** @var string[] */
   static protected $_used_components = array();
+  /** @var string[] */
+  static protected $_bind_attributes = array();
 
   /**
    * @var bool
@@ -49,15 +52,17 @@ abstract class Component extends CoreElement
    */
   protected final function _construct( array $data = NULL )
   {
-    parent::_construct('div', array('class' => 'component', 'data-component' => static::component_name()));
+    parent::_construct(NULL, array('class' => 'component', 'data-component' => static::component_name()));
+
+    $merged = static::_merged_data();
+    // inject merged props first
+    foreach ( $merged as $key => $val )
+    {
+      $this->{$key} = $val;
+    }
+
     if ( $data )
     {
-      $merged = static::_merged_data();
-      // inject merged props first
-      foreach ( $merged as $key => $val )
-      {
-        $this->{$key} = $val;
-      }
       // then others
       foreach ( $data as $key => $value )
       {
@@ -686,19 +691,21 @@ abstract class Component extends CoreElement
       }
       else
       {
-        $kind = explode('.', -2);
+        $kind = explode('.', strtolower($file), -2);
         if ( count($kind) === 2 )
         {
-          $kind = strtolower($kind);
+          $kind = array_pop($kind);
           if ( $kind === 'css' )
           {
-            $out .= '<style type="text/css">' . file_get_contents($file) . '</style>';
+            $out .= '<style type="text/css">'
+              . file_get_contents($file)
+              . '</style>';
           }
           else if ( $kind === 'js' )
           {
             $out .= '<script type="text/javascript">!function(){'
               . file_get_contents($file)
-              . '}.apply(this);</script>';
+              . '}.call(this);</script>';
           }
         }
       }
@@ -738,26 +745,37 @@ abstract class Component extends CoreElement
   }
 
   /**
-   * @param bool $include_resources
+   * @param bool $from_toString
    * @return string
    */
-  public function get_html_content( $include_resources = FALSE )
+  public function get_html_content( $from_toString = FALSE )
+  {
+    return $this->render();
+  }
+
+  public function __toString()
   {
     try
     {
-      $content = $this->render();
+      // calling render before in case an attribute needs to be set in render
+      $body    = $this->render();
+      $content = $this->open_tag();
+      // null content means lonely tag
+      if ( $body !== NULL ) $content .= $body . $this->close_tag();
+      // decorate...
       if ( ($file = $this->layout()) )
       {
         $content = $this->_render($file, array('content' => $content));
       }
-      if ( $include_resources ) $content .= $this->include_resources();
+      // ...and add inline resources if any
+      $content .= $this->include_resources();
     }
     catch ( \Exception $e )
     {
       if ( self::$_debug_mode )
       {
         $content = '<h3>Error in component <var>' . static::component_name() . '</var>:</h3>'
-          . '<pre>' . htmlentities('' . $e) . '</pre>';
+          . '<pre>' . htmlentities($e->__toString()) . '</pre>';
       }
       else
       {
@@ -772,7 +790,7 @@ abstract class Component extends CoreElement
    * @param string $file
    * @param array $extra
    * @return string
-   * @throws Exception
+   * @throws \Exception
    */
   private function _render( $file, array $extra = NULL )
   {
@@ -782,7 +800,7 @@ abstract class Component extends CoreElement
     {
       include $file;
     }
-    catch ( Exception $err )
+    catch ( \Exception $err )
     {
       ob_end_clean();
       throw $err;

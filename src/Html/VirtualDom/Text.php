@@ -4,12 +4,12 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components\Html;
+namespace Huafu\Html\VirtualDom;
 
 
 /**
  * Class Text
- * @package Huafu\Components\Html
+ * @package Huafu\Html\VirtualDom
  *
  * @method static static create(string $text = '', int $ent_type = NULL, string $charset = NULL)
  */
@@ -23,14 +23,14 @@ class Text extends Node
   public $charset;
 
   /**
-   * @param string $source
+   * @param string $text
    * @param null|int $ent_type
    * @param null|string $charset
    */
-  protected function _construct( $source, $ent_type = NULL, $charset = NULL )
+  protected function _construct( $text = '', $ent_type = NULL, $charset = NULL )
   {
     parent::_construct();
-    $this->text     = $source;
+    $this->text     = $text;
     $this->ent_type = $ent_type;
     $this->charset  = $charset;
   }

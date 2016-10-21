@@ -4,12 +4,12 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components\Html;
+namespace Huafu\Html\VirtualDom;
 
 
 /**
  * Class Source
- * @package Huafu\Components\Html
+ * @package Huafu\Html\VirtualDom
  *
  * @method static static create(mixed $source = '')
  */

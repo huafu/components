@@ -4,12 +4,12 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components\Html;
+namespace Huafu\Html\VirtualDom;
 
 
 /**
  * Class CoreElement
- * @package Huafu\Components\Html
+ * @package Huafu\Html\VirtualDom
  *
  * @method static static create(null|string $tag = NULL, null|string|array $attributes = NULL, null|mixed $content = NULL)
  */
@@ -156,10 +156,9 @@ abstract class CoreElement extends Node
   }
 
   /**
-   * @param bool $from_toString
    * @return string
    */
-  abstract public function get_html_content( $from_toString = FALSE );
+  abstract public function get_html_content();
 
   /**
    * @return string
@@ -240,7 +239,7 @@ abstract class CoreElement extends Node
   public function __toString()
   {
     $out = $this->open_tag();
-    if ( ($html = $this->get_html_content(TRUE)) !== NULL )
+    if ( ($html = $this->get_html_content()) !== NULL )
     {
       $out .= $html . $this->close_tag();
     }

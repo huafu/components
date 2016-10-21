@@ -4,12 +4,12 @@
  * @since 2016-10-20
  */
 
-namespace Huafu\Components\Html;
+namespace Huafu\Html\VirtualDom;
 
 
 /**
  * Class Element
- * @package Huafu\Components\Html
+ * @package Huafu\Html\VirtualDom
  *
  * @method static static create(null|string $tag = NULL, null|string|array $attributes = NULL, null|mixed $content = NULL)
  */
@@ -52,10 +52,9 @@ class Element extends CoreElement
   }
 
   /**
-   * @param bool $from_toString
    * @return null|string
    */
-  public function get_html_content( $from_toString = FALSE )
+  public function get_html_content()
   {
     return $this->_children === NULL ? NULL : implode('', $this->_children);
   }
