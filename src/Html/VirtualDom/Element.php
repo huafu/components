@@ -17,6 +17,8 @@ class Element extends CoreElement
 {
   /** @var string[] */
   static public $lonely_tags = array('img', 'hr', 'link');
+  /** @var callable */
+  static public $string_is_html_callback = NULL;
 
   /** @var Node[] */
   protected $_children = array();
@@ -148,6 +150,7 @@ class Element extends CoreElement
       }
       else
       {
+        if ( $text_is_html === NULL && is_string($node) ) $text_is_html = self::_string_is_html($node);
         $nodes[] = $text_is_html ? Source::create($node) : Text::create($node);
       }
     }
@@ -155,6 +158,19 @@ class Element extends CoreElement
     return $nodes;
   }
 
+  /**
+   * @param string $string
+   * @return bool
+   */
+  static private function _string_is_html( &$string )
+  {
+    if ( self::$string_is_html_callback )
+    {
+      return call_user_func_array(self::$string_is_html_callback, array(&$string));
+    }
+
+    return FALSE;
+  }
 
   /**
    * @param mixed $text
