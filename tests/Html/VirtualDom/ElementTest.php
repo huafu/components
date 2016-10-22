@@ -27,7 +27,7 @@ class ElementTest extends TestCase
     $node = Element::create(NULL, array('me' => 'you'));
     $this->assertAttributeEquals(
       array('me' => 'you'),
-      '_attributes',
+      'attributes',
       $node,
       'attributes should be set correctly'
     );

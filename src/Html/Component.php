@@ -32,15 +32,13 @@ abstract class Component extends CoreElement
   static private $_debug_mode = FALSE;
 
   /** @var string[] */
-  static protected $_merged_data_names = array('_bind_attributes');
+  static protected $_merged_data_names = array('attributes');
   /** @var bool */
   static protected $_is_public = NULL;
   /** @var string[] */
   static protected $_input_config = array();
   /** @var string[] */
   static protected $_used_components = array();
-  /** @var string[] */
-  static protected $_bind_attributes = array();
 
   /**
    * @var bool
@@ -70,7 +68,7 @@ abstract class Component extends CoreElement
 
         if ( in_array($key, $merged, TRUE) )
         {
-          $this->{$key} = array_merge($this->{$key}, $value ? $value : array());
+          $this->{$key} = self::_merge($key, $this->{$key}, $value ? $value : array());
         }
         else
         {
@@ -869,7 +867,7 @@ abstract class Component extends CoreElement
       if ( $p->getDeclaringClass()->getName() === $my_class )
       {
         $val = $defaults[$name];
-        if ( $val ) $value = array_merge($value, $val);
+        if ( $val ) $value = self::_merge($name, $value, $val);
       }
     }
     unset($value);
@@ -894,6 +892,22 @@ abstract class Component extends CoreElement
     }
 
     return $cache[$my_class] = $data;
+  }
+
+  /**
+   * @param string $key
+   * @param array $base
+   * @param array $extend
+   * @return array
+   */
+  private static function _merge( $key, $base, $extend )
+  {
+    if ( $key === 'attributes' )
+    {
+      return self::merge_attributes($base, $extend);
+    }
+
+    return array_merge($base, $extend);
   }
 
 

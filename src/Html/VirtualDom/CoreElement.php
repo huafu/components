@@ -21,7 +21,7 @@ abstract class CoreElement extends Node
   /** @var string */
   public $tag = 'div';
   /** @var array array */
-  protected $_attributes = array();
+  public $attributes = array();
 
   /**
    * @param null|string $tag
@@ -31,7 +31,7 @@ abstract class CoreElement extends Node
   {
     parent::_construct();
     if ( $tag ) $this->tag = $tag;
-    if ( $attributes ) $this->_attributes = self::merge_attributes($attributes);
+    if ( $attributes ) $this->attributes = self::merge_attributes($attributes);
   }
 
   /**
@@ -60,7 +60,7 @@ abstract class CoreElement extends Node
           array_splice($classes, $k, 1);
         }
       }
-      $this->_attributes['class'] = $classes;
+      $this->attributes['class'] = $classes;
     }
 
     return $this;
@@ -85,7 +85,7 @@ abstract class CoreElement extends Node
     $argc = func_num_args();
     if ( $argc === 1 && is_array($name) )
     {
-      $this->_attributes = self::merge_attributes($this->_attributes, $name);
+      $this->attributes = self::merge_attributes($this->attributes, $name);
 
       return $this;
     }
@@ -95,7 +95,7 @@ abstract class CoreElement extends Node
     }
     else
     {
-      $this->_attributes[$name] = $value;
+      $this->attributes[$name] = $value;
     }
 
     return $this;
@@ -109,11 +109,11 @@ abstract class CoreElement extends Node
   {
     if ( $name === NULL )
     {
-      $this->_attributes = array();
+      $this->attributes = array();
     }
     else
     {
-      unset($this->_attributes[$name]);
+      unset($this->attributes[$name]);
     }
 
     return $this;
@@ -127,19 +127,21 @@ abstract class CoreElement extends Node
   {
     if ( $name === NULL )
     {
-      return $this->_attributes;
+      return $this->attributes;
     }
 
-    return isset($this->_attributes[$name]) ? $this->_attributes[$name] : NULL;
+    return isset($this->attributes[$name]) ? $this->attributes[$name] : NULL;
   }
 
   /**
+   * @param null|array|string $extra_attributes
    * @return string
    */
-  public function open_tag()
+  public function open_tag( $extra_attributes = NULL )
   {
-    $out = '<' . $this->tag;
-    foreach ( $this->_attributes as $key => $value )
+    $out   = '<' . $this->tag;
+    $attrs = self::merge_attributes($this->attributes, $extra_attributes);
+    foreach ( $attrs as $key => $value )
     {
       if ( $value === NULL ) continue;
       if ( is_object($value) && in_array(get_class($value), self::$text_object_classes, TRUE) ) $value = '' . $value;
@@ -186,7 +188,14 @@ abstract class CoreElement extends Node
     foreach ( $all as $i => $class )
     {
       if ( empty($class) ) continue;
-      $res[$class] = $i;
+      if ( substr($class, 0, 1) === '!' )
+      {
+        unset($res[$class]);
+      }
+      else
+      {
+        $res[$class] = $i;
+      }
     }
     // so that we keep the latest added at the end
     asort($res, SORT_REGULAR);
