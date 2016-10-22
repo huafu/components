@@ -48,7 +48,7 @@ abstract class Component extends CoreElement
   /**
    * @param array|NULL $data
    */
-  protected final function _construct( $data = NULL )
+  protected final function _construct( $data = NULL, $_dummy = NULL )
   {
     parent::_construct(NULL, array('class' => 'component', 'data-component' => static::component_name()));
 
