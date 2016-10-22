@@ -1,6 +1,6 @@
 {
   "name": "huafu/components",
-  "description": "Organise UI components into standalone peices while keeping logic and UI separated - framework independent",
+  "description": "Organise UI components into standalone pieces while keeping logic and UI separated - framework independent",
   "version": "0.0.1",
   "type": "library",
   "license": "MIT",

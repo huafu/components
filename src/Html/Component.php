@@ -616,6 +616,42 @@ abstract class Component extends CoreElement
     throw new Exception('You must define ' . __FUNCTION__ . ' method to use instance_for');
   }
 
+  /**
+   * @param string $file
+   * @param string $kind
+   * @return string
+   */
+  static public function get_resource_content( $file, $kind )
+  {
+    $content = file_get_contents($file);
+    if ( $kind === 'js' )
+    {
+      $content = '!function(){' . $content . '}.call(this);';
+    }
+
+    return $content;
+  }
+
+
+  /**
+   * @param null|string $components_path
+   * @param null|string $components_namespace
+   * @param null|string $uri_prefix
+   * @param bool $debug_mode
+   * @throws Exception
+   */
+  static public function configure( $components_path = NULL, $components_namespace = NULL, $uri_prefix = NULL, $debug_mode = FALSE )
+  {
+    static $configured = FALSE;
+    if ( $configured ) throw new Exception("huafu/components has already been configured");
+    $configured        = TRUE;
+    self::$_debug_mode = (bool)$debug_mode;
+    if ( $components_namespace ) self::$_root_namespace = (string)$components_namespace;
+    if ( $uri_prefix != NULL ) self::$_base_uri = (string)$uri_prefix;
+    if ( $components_path ) self::$_root_path = $components_path;
+    spl_autoload_register(array(__CLASS__, 'spl_autoload'));
+  }
+
 
   /**
    * @param array $in
@@ -695,15 +731,15 @@ abstract class Component extends CoreElement
           $kind = array_pop($kind);
           if ( $kind === 'css' )
           {
-            $out .= '<style type="text/css">'
-              . file_get_contents($file)
+            $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
+              . static::get_resource_content($file, $kind)
               . '</style>';
           }
           else if ( $kind === 'js' )
           {
-            $out .= '<script type="text/javascript">!function(){'
-              . file_get_contents($file)
-              . '}.call(this);</script>';
+            $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
+              . static::get_resource_content($file, $kind)
+              . '</script>';
           }
         }
       }
