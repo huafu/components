@@ -156,7 +156,7 @@ abstract class Component extends CoreElement
   /**
    * @return string
    */
-  public function render()
+  public function render_content()
   {
     return ($file = $this->template())
       ? $this->_render($file)
@@ -789,25 +789,43 @@ abstract class Component extends CoreElement
    */
   public function get_html_content( $from_toString = FALSE )
   {
-    return $this->render();
+    return $this->render_content();
+  }
+
+
+  /**
+   * @param bool $include_resources
+   * @param bool $in_layout
+   * @param bool $in_tag
+   * @return string
+   */
+  public function render( $include_resources = TRUE, $in_layout = TRUE, $in_tag = TRUE )
+  {
+    // calling render before in case an attribute needs to be set in render
+    $body    = $this->render_content();
+    $content = '';
+    if ( $in_tag ) $this->open_tag();
+    // null content means lonely tag
+    if ( $body !== NULL ) $content .= $body . ($in_tag ? $this->close_tag() : '');
+    // decorate...
+    if ( $in_layout && ($file = $this->layout()) )
+    {
+      $content = $this->_render($file, array('content' => $content));
+    }
+    // ...and add inline resources if any
+    if ( $include_resources )
+    {
+      $content .= $this->include_resources();
+    }
+
+    return $content;
   }
 
   public function __toString()
   {
     try
     {
-      // calling render before in case an attribute needs to be set in render
-      $body    = $this->render();
-      $content = $this->open_tag();
-      // null content means lonely tag
-      if ( $body !== NULL ) $content .= $body . $this->close_tag();
-      // decorate...
-      if ( ($file = $this->layout()) )
-      {
-        $content = $this->_render($file, array('content' => $content));
-      }
-      // ...and add inline resources if any
-      $content .= $this->include_resources();
+      $content = $this->render();
     }
     catch ( \Exception $e )
     {
