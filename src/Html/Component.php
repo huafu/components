@@ -653,6 +653,19 @@ abstract class Component extends CoreElement
 
 
   /**
+   * @param string $file
+   * @return string
+   */
+  static public function get_resouce_relpath( $file )
+  {
+    $base_path = realpath(static::_get_base_path());
+    $segments  = explode($base_path, realpath($file));
+
+    return 'components' . array_pop($segments);
+  }
+
+
+  /**
    * @param array $config
    * @param bool $register_autoload
    * @return bool
@@ -749,12 +762,14 @@ abstract class Component extends CoreElement
           {
             $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
               . static::get_resource_content($file, $kind)
+              . "\n" . '/*# sourceURL=' . static::get_resouce_relpath($file) . ' */'
               . '</style>';
           }
           else if ( $kind === 'js' )
           {
             $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
               . static::get_resource_content($file, $kind)
+              . "\n" . '//# sourceURL=' . static::get_resouce_relpath($file)
               . '</script>';
           }
         }
