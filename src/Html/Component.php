@@ -207,7 +207,7 @@ abstract class Component extends CoreElement
    */
   public function get_id( $suffix = NULL )
   {
-    $id = $this->set_attribute('id');
+    $id = $this->get_attribute('id');
     if ( !$id ) $id = $this->set_id()->get_attribute('id');
 
     return $id . ($suffix ? '.' . $suffix : '');
