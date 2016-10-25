@@ -17,12 +17,10 @@ use Huafu\Html\VirtualDom\CoreElement;
  * @method static string config_root_namespace($default = NULL, $set_config = FALSE)
  * @method static string config_root_path($default = NULL, $set_config = FALSE)
  * @method static string config_base_uri($default = NULL, $set_config = FALSE)
- * @method static bool config_debug_mode($default = NULL, $set_config = FALSE)
  *
  * @property string config_root_namespace = 'Components'
  * @property string config_root_path = 'components'
  * @property string config_base_uri = 'c'
- * @property bool config_debug_mode = FALSE
  */
 abstract class Component extends CoreElement
 {
@@ -816,7 +814,7 @@ abstract class Component extends CoreElement
       if ( $this->config_debug_mode )
       {
         $content = '<h3>Error in component <var>' . static::component_name() . '</var>:</h3>'
-          . '<pre>' . htmlentities($e->__toString()) . '</pre>';
+          . '<pre>' . $e->__toString() . '</pre>';
       }
       else
       {

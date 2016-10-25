@@ -16,10 +16,12 @@ namespace Huafu\Html\VirtualDom;
  * @method static string[] config_lonely_tags($default = NULL, $set_config = FALSE)
  * @method static string[] config_text_object_classes($default = NULL, $set_config = FALSE)
  * @method static callable config_string_is_html_callback($default = NULL, $set_config = FALSE)
+ * @method static bool config_debug_mode($default = NULL, $set_config = FALSE)
  *
  * @property string[] config_lonely_tags = array('img', 'hr', 'link')
  * @property string[] config_text_object_classes = array()
  * @property callable config_string_is_html_callback = null
+ * @property bool config_debug_mode = FALSE
  */
 abstract class CoreElement extends Node
 {
@@ -27,6 +29,7 @@ abstract class CoreElement extends Node
     'lonely_tags'             => array('img', 'hr', 'link'),
     'string_is_html_callback' => NULL,
     'text_object_classes'     => array(),
+    'debug_mode'              => FALSE,
   );
 
   /** @var string */
@@ -258,10 +261,19 @@ abstract class CoreElement extends Node
 
   public function __toString()
   {
-    $out = $this->open_tag();
-    if ( ($html = $this->get_html_content()) !== NULL )
+    try
     {
-      $out .= $html . $this->close_tag();
+      $out = $this->open_tag();
+      if ( ($html = $this->get_html_content()) !== NULL )
+      {
+        $out .= $html . $this->close_tag();
+      }
+    }
+    catch ( \Exception $e )
+    {
+      $out = '<pre data-original-tag="' . $this->tag . '">'
+        . ($this->config_debug_mode ? $e->__toString() : $e->getMessage())
+        . '</pre>';
     }
 
     return $out;

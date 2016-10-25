@@ -165,7 +165,7 @@ trait Configurable
   {
     if ( substr($name, 0, 7) === 'config_' )
     {
-      self::_set_config($this->_object_config, get_class($this), substr($name, 7), $value);
+      return self::_set_config($this->_object_config, get_class($this), substr($name, 7), $value);
     }
 
     if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
@@ -180,7 +180,7 @@ trait Configurable
   {
     if ( substr($name, 0, 7) === 'config_' )
     {
-      self::_get_config($this->_object_config, get_class($this), substr($name, 7));
+      return self::_get_config($this->_object_config, get_class($this), substr($name, 7));
     }
 
     if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
