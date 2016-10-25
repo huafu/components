@@ -470,17 +470,21 @@ abstract class Component extends CoreElement
   /**
    * @return string|null
    */
-  static public function default_layout()
+  static public function default_layout( $class = NULL )
   {
-    return self::_default_file(static::DEFAULT_LAYOUT_FILE, get_called_class());
+    if ( !$class ) $class = get_called_class();
+
+    return self::_default_file(static::DEFAULT_LAYOUT_FILE, $class);
   }
 
   /**
    * @return string|null
    */
-  static public function default_template()
+  static public function default_template( $class = NULL )
   {
-    return self::_default_file(static::DEFAULT_TEMPLATE_FILE, get_called_class());
+    if ( !$class ) $class = get_called_class();
+
+    return self::_default_file(static::DEFAULT_TEMPLATE_FILE, $class);
   }
 
   /**
@@ -525,7 +529,7 @@ abstract class Component extends CoreElement
       $related = self::$getter_method_name($component_class);
       $res     = array_merge($res, $related);
     }
-    if ( ($file = self::_default_file($self_default_file_name, $class)) ) $res[] = $file;
+    $res = array_merge($res, self::_default_file($self_default_file_name, $class, TRUE));
 
     // array_unique which preserves order
     return $cache[$cache_key] = array_keys(array_flip($res));
@@ -743,7 +747,7 @@ abstract class Component extends CoreElement
 
     $files = is_array($file) ? $file : array($file);
     $out   = '';
-    foreach ( $files as $file )
+    foreach ( $files as $source_url => $file )
     {
       if ( isset($included[$file]) ) continue;
       $included[$file] = TRUE;
@@ -762,14 +766,14 @@ abstract class Component extends CoreElement
           {
             $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
               . static::get_resource_content($file, $kind)
-              . "\n" . '/*# sourceURL=' . static::get_resouce_relpath($file) . ' */'
+              . (is_string($source_url) ? "\n" . '/*# sourceURL=' . $source_url . ' */' : '')
               . '</style>';
           }
           else if ( $kind === 'js' )
           {
             $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
               . static::get_resource_content($file, $kind)
-              . "\n" . '//# sourceURL=' . static::get_resouce_relpath($file)
+              . (is_string($source_url) ? "\n" . '//# sourceURL=' . $source_url : '')
               . '</script>';
           }
         }
@@ -783,25 +787,30 @@ abstract class Component extends CoreElement
   /**
    * @param string $name
    * @param null|string $class
-   * @return null|string|string[]
+   * @param bool $as_array
+   * @return \string[]
    */
-  static private function _default_file( $name, $class = NULL )
+  static private function _default_file( $name, $class = NULL, $as_array = FALSE )
   {
     static $cache = array();
     if ( !$class ) $class = get_called_class();
-    $cache_key = "{$class}:{$name}";
+    if ( $class === __CLASS__ ) return $as_array ? [] : NULL;
+    $as_array  = (bool)$as_array;
+    $cache_key = "{$class}:{$name}:{$as_array}";
     if ( array_key_exists($cache_key, $cache) )
     {
       $file = $cache[$cache_key];
     }
     else
     {
-      $file = $class::_get_base_path() . '/' . $name;
+      $file = self::_get_base_path($class, $rel) . '/' . $name;
       if ( !file_exists($file) )
       {
-        $file = $class === __CLASS__
-          ? NULL
-          : self::_default_file($name, get_parent_class($class));
+        $file = self::_default_file($name, get_parent_class($class), $as_array);
+      }
+      else if ( $as_array )
+      {
+        $file = [$rel . '/' . $name => $file];
       }
       $cache[$cache_key] = $file;
     }
@@ -936,13 +945,15 @@ abstract class Component extends CoreElement
 
   /**
    * @param string $class
+   * @param null $relative_to_root
    * @return string
    */
-  protected static function _get_base_path( $class = NULL )
+  protected static function _get_base_path( $class = NULL, &$relative_to_root = NULL )
   {
     if ( $class === NULL ) $class = get_called_class();
+    $relative_to_root = strtolower(str_replace('\\', '/', substr($class, strlen(static::config_root_namespace()) + 1)));
 
-    return static::config_root_path() . '/' . strtolower(str_replace('\\', '/', substr($class, strlen(static::config_root_namespace()) + 1)));
+    return static::config_root_path() . '/' . $relative_to_root;
   }
 
   /**
