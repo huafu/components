@@ -794,6 +794,24 @@ abstract class Component extends CoreElement
 
 
   /**
+   * Called before the component will be rendered
+   */
+  public function before_render()
+  {
+
+  }
+
+
+  /**
+   * Called after the component html has been generated
+   * @param string $content
+   */
+  public function after_render( $content )
+  {
+  }
+
+
+  /**
    * @param bool $include_resources
    * @param bool $in_layout
    * @param bool $in_tag
@@ -801,12 +819,11 @@ abstract class Component extends CoreElement
    */
   public function render( $include_resources = TRUE, $in_layout = TRUE, $in_tag = TRUE )
   {
-    // calling render before in case an attribute needs to be set in render
-    $body    = $this->render_content();
     $content = '';
+    $this->before_render();
     if ( $in_tag ) $this->open_tag();
     // null content means lonely tag
-    if ( $body !== NULL ) $content .= $body . ($in_tag ? $this->close_tag() : '');
+    if ( ($body = $this->render_content()) !== NULL ) $content .= $body . ($in_tag ? $this->close_tag() : '');
     // decorate...
     if ( $in_layout && ($file = $this->layout()) )
     {
@@ -817,6 +834,8 @@ abstract class Component extends CoreElement
     {
       $content .= $this->include_resources();
     }
+
+    $this->after_render($content);
 
     return $content;
   }
