@@ -730,8 +730,8 @@ abstract class Component extends CoreElement
       }
       else
       {
-        $kind = explode('.', strtolower($file), -2);
-        if ( count($kind) === 2 )
+        $kind = explode('.', strtolower($file));
+        if ( count($kind) >= 2 )
         {
           $kind = array_pop($kind);
           if ( $kind === 'css' )
