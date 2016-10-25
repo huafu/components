@@ -13,8 +13,8 @@ namespace Huafu\Lang;
  */
 trait Configurable
 {
-  /** @var array */
-  protected static $_default_class_config = NULL;
+  ///** @var array */
+  //protected static $_default_class_config = NULL;
   /** @var array[] */
   private static $_class_configs = array();
   /** @var bool[] */
