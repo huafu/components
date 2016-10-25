@@ -1009,11 +1009,8 @@ abstract class Component extends CoreElement
   static private function _css_escape( $string )
   {
     return str_replace(
-      array(':', '\.', '[', ']', ',', '='),
-      function ( $str )
-      {
-        return '\\' . $str;
-      },
+      array(':', '.', '[', ']', ',', '=', '\\'),
+      array('\\:', '\\.', '\\[', '\\]', '\\,', '\\=', '\\\\'),
       $string
     );
   }
