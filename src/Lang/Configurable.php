@@ -66,16 +66,13 @@ trait Configurable
     static $cache = [];
     if ( isset($cache[$class]) ) return $cache[$class];
 
+    $classes = [$class];
+    while ( ($class = get_parent_class($class)) )
+    {
+      $classes[] = $class;
+    }
+
     $cache[$class] = array();
-    $classes       = get_parent_class($class);
-    if ( $classes )
-    {
-      array_unshift($classes, $class);
-    }
-    else
-    {
-      $classes = [$class];
-    }
     foreach ( $classes as $class )
     {
       if ( !isset(self::$_class_configs[$class]) )
