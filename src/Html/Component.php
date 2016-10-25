@@ -24,6 +24,12 @@ use Huafu\Html\VirtualDom\CoreElement;
  */
 abstract class Component extends CoreElement
 {
+  const DEFAULT_JAVASCRIPT_FILE = 'javascript.js';
+  const DEFAULT_STYLESHEET_FILE = 'stylesheet.css';
+  const DEFAULT_COMPONENT_FILE  = 'component.php';
+  const DEFAULT_TEMPLATE_FILE   = 'template.php';
+  const DEFAULT_LAYOUT_FILE     = 'layout.php';
+
   /** @var null|Component */
   static private $_standalone_instance = NULL;
   /** @var Component[] */
@@ -466,7 +472,7 @@ abstract class Component extends CoreElement
    */
   static public function default_layout()
   {
-    return self::_default_file('layout.php', get_called_class());
+    return self::_default_file(static::DEFAULT_LAYOUT_FILE, get_called_class());
   }
 
   /**
@@ -474,7 +480,7 @@ abstract class Component extends CoreElement
    */
   static public function default_template()
   {
-    return self::_default_file('template.php', get_called_class());
+    return self::_default_file(static::DEFAULT_TEMPLATE_FILE, get_called_class());
   }
 
   /**
@@ -483,19 +489,9 @@ abstract class Component extends CoreElement
    */
   static public function default_stylesheets( $class = NULL )
   {
-    static $cache = array();
     if ( !$class ) $class = get_called_class();
-    if ( $class === __CLASS__ ) return array();
-    if ( isset($cache[$class]) ) return $cache[$class];
 
-    $res = array();
-    foreach ( self::used_components($class) as $component_class )
-    {
-      $res = array_merge($res, self::default_stylesheets($component_class));
-    }
-    if ( ($file = self::_default_file('stylesheet.css', $class)) ) $res[] = $file;
-
-    return $cache[$class] = array_keys(array_flip($res));
+    return self::_resolve_default_resources($class, __METHOD__, $class::DEFAULT_STYLESHEET_FILE);
   }
 
   /**
@@ -504,19 +500,35 @@ abstract class Component extends CoreElement
    */
   static public function default_javascripts( $class = NULL )
   {
-    static $cache = array();
     if ( !$class ) $class = get_called_class();
+
+    return self::_resolve_default_resources($class, __METHOD__, $class::DEFAULT_JAVASCRIPT_FILE);
+  }
+
+
+  /**
+   * @param string $class
+   * @param string $getter_method_name
+   * @param string $self_default_file_name
+   * @return string[]
+   */
+  static private function _resolve_default_resources( $class, $getter_method_name, $self_default_file_name )
+  {
+    static $cache = array();
     if ( $class === __CLASS__ ) return array();
-    if ( isset($cache[$class]) ) return $cache[$class];
+    $cache_key = "{$class}::{$getter_method_name}";
+    if ( isset($cache[$cache_key]) ) return $cache[$cache_key];
 
     $res = array();
     foreach ( self::used_components($class) as $component_class )
     {
-      $res = array_merge($res, self::default_javascripts($component_class));
+      $related = self::$getter_method_name($component_class);
+      $res     = array_merge($res, $related);
     }
-    if ( ($file = self::_default_file('javascript.js', $class)) ) $res[] = $file;
+    if ( ($file = self::_default_file($self_default_file_name, $class)) ) $res[] = $file;
 
-    return $cache[$class] = array_keys(array_flip($res));
+    // array_unique which preserves order
+    return $cache[$cache_key] = array_keys(array_flip($res));
   }
 
 
@@ -549,7 +561,7 @@ abstract class Component extends CoreElement
   {
     if ( substr($class, 0, strlen($namespace = static::config_root_namespace()) + 1) === $namespace . '\\' )
     {
-      require_once static::_get_base_path($class) . '/component.php';
+      require_once static::_get_base_path($class) . '/' . static::DEFAULT_COMPONENT_FILE;
     }
   }
 
