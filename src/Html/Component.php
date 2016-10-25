@@ -821,7 +821,7 @@ abstract class Component extends CoreElement
   {
     $content = '';
     $this->before_render();
-    if ( $in_tag ) $this->open_tag();
+    if ( $in_tag ) $content .= $this->open_tag();
     // null content means lonely tag
     if ( ($body = $this->render_content()) !== NULL ) $content .= $body . ($in_tag ? $this->close_tag() : '');
     // decorate...
