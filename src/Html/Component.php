@@ -880,7 +880,7 @@ abstract class Component extends CoreElement
    * @return string
    * @throws \Exception
    */
-  private function _render( $file, array $extra = NULL )
+  protected function _render( $file, array $extra = NULL )
   {
     if ( $extra ) extract($extra);
     ob_start();
