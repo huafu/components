@@ -14,10 +14,10 @@ use Huafu\Html\VirtualDom\CoreElement;
  * Class Component
  * @package Huafu\Html
  *
- * @method static string config_root_namespace()
- * @method static string config_root_path()
- * @method static string config_base_uri()
- * @method static bool config_debug_mode()
+ * @method static string config_root_namespace($default = NULL, $set_config = FALSE)
+ * @method static string config_root_path($default = NULL, $set_config = FALSE)
+ * @method static string config_base_uri($default = NULL, $set_config = FALSE)
+ * @method static bool config_debug_mode($default = NULL, $set_config = FALSE)
  *
  * @property string config_root_namespace = 'Components'
  * @property string config_root_path = 'components'

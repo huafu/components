@@ -130,7 +130,7 @@ trait Configurable
    */
   private static function _set_config( &$local, $class, $key, $value = NULL )
   {
-    if ( isset($local) )
+    if ( isset($local) && is_array($local) )
     {
       $local[$key] = $value;
     }
@@ -147,7 +147,13 @@ trait Configurable
     if ( !isset($this) || !($this instanceof self) ) return static::__callStatic($name, $arguments);
     if ( substr($name, 0, 7) === 'config_' )
     {
-      return self::_get_config($this->_object_config, get_called_class(), substr($name, 7), array_shift($arguments));
+      $val_or_default = array_shift($arguments);
+      $is_set         = (bool)array_shift($arguments);
+      $key            = substr($name, 7);
+
+      return $is_set
+        ? self::_set_config($this->_object_config, get_called_class(), $key, $val_or_default)
+        : self::_get_config($this->_object_config, get_called_class(), $key, $val_or_default);
     }
 
     return parent::__call($name, $arguments);
@@ -178,7 +184,14 @@ trait Configurable
   {
     if ( substr($name, 0, 7) === 'config_' )
     {
-      return self::_get_config(NULL, get_called_class(), substr($name, 7), array_shift($arguments));
+      $val_or_default = array_shift($arguments);
+      $is_set         = (bool)array_shift($arguments);
+      $key            = substr($name, 7);
+      $local          = NULL;
+
+      return $is_set
+        ? self::_set_config($local, get_called_class(), $key, $val_or_default)
+        : self::_get_config($local, get_called_class(), $key, $val_or_default);
     }
 
     return parent::__callStatic($name, $arguments);

@@ -13,9 +13,9 @@ namespace Huafu\Html\VirtualDom;
  *
  * @method static static create(null|string $tag = NULL, null|string|array $attributes = NULL, null|mixed $content = NULL)
  *
- * @method static string[] config_lonely_tags($default = NULL)
- * @method static string[] config_text_object_classes($default = NULL)
- * @method static callable config_string_is_html_callback($default = NULL)
+ * @method static string[] config_lonely_tags($default = NULL, $set_config = FALSE)
+ * @method static string[] config_text_object_classes($default = NULL, $set_config = FALSE)
+ * @method static callable config_string_is_html_callback($default = NULL, $set_config = FALSE)
  *
  * @property string[] config_lonely_tags = array('img', 'hr', 'link')
  * @property string[] config_text_object_classes = array()
