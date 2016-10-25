@@ -607,13 +607,12 @@ abstract class Component extends CoreElement
   {
     $my_class = get_called_class();
     if ( $my_class === __CLASS__ ) throw new Exception(__FUNCTION__ . ' must be called using a component class');
-    $key = $my_class . ':' . static::build_instance_key($arg);
+    $key = $my_class . ':' . $my_class::build_instance_key($arg);
     if ( isset(self::$_instances[$key]) ) return self::$_instances[$key];
 
-    self::$_instances[$key] = $component = new static(static::build_instance_data($arg));
-    $component->_setup();
+    self::$_instances[$key] = $component = self::_create([$my_class::build_instance_data($arg)], $my_class);
 
-    return $component;
+    return $component->_setup();
   }
 
   /**
