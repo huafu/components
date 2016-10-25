@@ -456,9 +456,9 @@ abstract class Component extends CoreElement
 
     $data = $class::parse_standalone_input($input);
     /** @var Component $component */
-    $component = self::_create([$data], $class);
+    self::$_standalone_instance = $component = self::_create([$data], $class);
 
-    return self::$_standalone_instance = $component->_setup();
+    return $component->_setup();
   }
 
   /**
