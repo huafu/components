@@ -531,8 +531,7 @@ abstract class Component extends CoreElement
     }
     $res = array_merge($res, self::_default_file($self_default_file_name, $class, TRUE));
 
-    // array_unique which preserves order
-    return $cache[$cache_key] = array_keys(array_flip($res));
+    return $cache[$cache_key] = $res;
   }
 
 
