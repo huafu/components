@@ -67,26 +67,27 @@ trait Configurable
     if ( isset($cache[$class]) ) return $cache[$class];
 
     $classes = [$class];
-    while ( ($class = get_parent_class($class)) )
+    $c       = $class;
+    while ( ($c = get_parent_class($c)) )
     {
-      $classes[] = $class;
+      $classes[] = $c;
     }
 
     $cache[$class] = array();
-    foreach ( $classes as $class )
+    foreach ( $classes as $C )
     {
-      if ( !isset(self::$_class_configs[$class]) )
+      if ( !isset(self::$_class_configs[$C]) )
       {
-        self::$_class_configs[$class] =
+        self::$_class_configs[$C] =
           (
-            isset($class::$_default_class_config)
-            && (new \ReflectionClass($class))->getProperty('_default_class_config')
-                                             ->getDeclaringClass()->name === $class
+            isset($C::$_default_class_config)
+            && (new \ReflectionClass($C))->getProperty('_default_class_config')
+                                         ->getDeclaringClass()->name === $C
           )
-            ? $class::$_default_class_config
+            ? $C::$_default_class_config
             : array();
       }
-      $cache[$class][] = &self::$_class_configs[$class];
+      $cache[$class][] = &self::$_class_configs[$C];
     }
 
     return $cache[$class];
