@@ -17,10 +17,12 @@ use Huafu\Html\VirtualDom\CoreElement;
  * @method static string config_root_namespace($default = NULL, $set_config = FALSE)
  * @method static string config_root_path($default = NULL, $set_config = FALSE)
  * @method static string config_base_uri($default = NULL, $set_config = FALSE)
+ * @method static string config_resources_debug_domain($default = NULL, $set_config = FALSE)
  *
- * @property string config_root_namespace = 'Components'
- * @property string config_root_path = 'components'
- * @property string config_base_uri = 'c'
+ * @property string $config_root_namespace = 'Components'
+ * @property string $config_root_path = 'components'
+ * @property string $config_base_uri = 'c'
+ * @property string $config_resources_debug_domain = 'huafu.html.components'
  */
 abstract class Component extends CoreElement
 {
@@ -771,6 +773,24 @@ abstract class Component extends CoreElement
 
 
   /**
+   * @param string $class
+   * @return string
+   */
+  static private function _sourceURL_domain( $class )
+  {
+    static $cache = [];
+    if ( isset($cache[$class]) ) return $cache[$class];
+
+    $domain = $class::config_resources_debug_domain('huafu.html.components');
+    if ( !in_array(explode('://', $domain)[0], array('http', 'https', 'file', 'ws', 'ftp'), TRUE) )
+    {
+      $domain = 'http://' . $domain;
+    }
+
+    return $cache[$class] = $domain;
+  }
+
+  /**
    * @param string $name
    * @param null|string $class
    * @param bool $as_array
@@ -796,7 +816,7 @@ abstract class Component extends CoreElement
       }
       else if ( $as_array )
       {
-        $file = ['/' . $rel . '/' . $name => $file];
+        $file = [self::_sourceURL_domain($class) . '/' . $rel . '/' . $name => $file];
       }
       $cache[$cache_key] = $file;
     }
