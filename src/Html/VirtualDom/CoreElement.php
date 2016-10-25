@@ -164,7 +164,7 @@ abstract class CoreElement extends Node
       {
         $value = json_encode($value);
       }
-      $out .= ' ' . $key . '="' . htmlentities($value, $this->config_ent_type, $this->config_charset) . '"';
+      $out .= ' ' . $key . '="' . htmlentities($value, ENT_QUOTES, $this->config_charset) . '"';
     }
     $out .= '>';
 
