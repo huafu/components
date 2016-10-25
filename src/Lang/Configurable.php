@@ -153,7 +153,11 @@ trait Configurable
         : self::_get_config($this->_object_config, get_called_class(), $key, $val_or_default);
     }
 
-    return parent::__call($name, $arguments);
+    if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
+    {
+      return parent::__call($name, $arguments);
+    }
+    throw new \BadMethodCallException('Class ' . get_called_class() . ' has no method ' . $name . '.');
   }
 
 
@@ -163,7 +167,12 @@ trait Configurable
     {
       self::_set_config($this->_object_config, get_class($this), substr($name, 7), $value);
     }
-    parent::__set($name, $value);
+
+    if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
+    {
+      return parent::__set($name, $value);
+    }
+    throw new \Exception('Class ' . get_called_class() . ' has no property ' . $name . '.');
   }
 
 
@@ -173,7 +182,12 @@ trait Configurable
     {
       self::_get_config($this->_object_config, get_class($this), substr($name, 7));
     }
-    parent::__get($name);
+
+    if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
+    {
+      return parent::__get($name);
+    }
+    throw new \Exception('Class ' . get_called_class() . ' has no property ' . $name . '.');
   }
 
 
@@ -191,6 +205,10 @@ trait Configurable
         : self::_get_config($local, get_called_class(), $key, $val_or_default);
     }
 
-    return parent::__callStatic($name, $arguments);
+    if ( ($class = get_parent_class()) && method_exists($class, __FUNCTION__) )
+    {
+      return parent::__callStatic($name, $arguments);
+    }
+    throw new \BadMethodCallException('Class ' . get_called_class() . ' has no method ' . $name . '.');
   }
 }
