@@ -657,19 +657,6 @@ abstract class Component extends CoreElement
 
 
   /**
-   * @param string $file
-   * @return string
-   */
-  static public function get_resouce_relpath( $file )
-  {
-    $base_path = realpath(static::_get_base_path());
-    $segments  = explode($base_path, realpath($file));
-
-    return 'components' . array_pop($segments);
-  }
-
-
-  /**
    * @param array $config
    * @param bool $register_autoload
    * @return bool
@@ -810,7 +797,7 @@ abstract class Component extends CoreElement
       }
       else if ( $as_array )
       {
-        $file = [$rel . '/' . $name => $file];
+        $file = ['/' . $rel . '/' . $name => $file];
       }
       $cache[$cache_key] = $file;
     }
