@@ -870,7 +870,7 @@ abstract class Component extends CoreElement
       }
     }
 
-    return $content;
+    return '' . $content;
   }
 
   /**
