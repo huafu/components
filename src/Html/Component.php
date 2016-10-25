@@ -559,7 +559,7 @@ abstract class Component extends CoreElement
    */
   static public function generate_id( $suffix = NULL )
   {
-    if ( !$suffix ) $suffix = substr(md5(rand()), 6);
+    if ( !$suffix ) $suffix = substr(md5(rand()), 0, 6);
 
     return static::component_name() . '.' . $suffix;
   }
