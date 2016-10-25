@@ -13,6 +13,16 @@ use Huafu\Html\VirtualDom\CoreElement;
 /**
  * Class Component
  * @package Huafu\Html
+ *
+ * @method static string config_root_namespace()
+ * @method static string config_root_path()
+ * @method static string config_base_uri()
+ * @method static bool config_debug_mode()
+ *
+ * @property string config_root_namespace = 'Components'
+ * @property string config_root_path = 'components'
+ * @property string config_base_uri = 'c'
+ * @property bool config_debug_mode = FALSE
  */
 abstract class Component extends CoreElement
 {
@@ -20,16 +30,16 @@ abstract class Component extends CoreElement
   static private $_standalone_instance = NULL;
   /** @var Component[] */
   static private $_instances = array();
-  /** @var string */
-  static private $_root_namespace = 'Components';
-  /** @var string */
-  static private $_root_path = 'components';
-  /** @var string */
-  static private $_base_uri = 'c';
   /** @var callable */
   static private $_include_resource = NULL;
-  /** @var bool */
-  static private $_debug_mode = FALSE;
+
+  /** @var array */
+  static protected $_default_class_config = array(
+    'root_namespace' => 'Components',
+    'root_path'      => 'components',
+    'base_uri'       => 'c',
+    'debug_mode'     => FALSE,
+  );
 
   /** @var string[] */
   static protected $_merged_data_names = array('attributes');
@@ -375,7 +385,7 @@ abstract class Component extends CoreElement
   static public function uri( array $data = NULL, $data_is_input = FALSE )
   {
     if ( !static::is_public() ) return NULL;
-    $uri = substr(get_called_class(), strlen(self::$_root_namespace) + 1);
+    $uri = substr(get_called_class(), strlen(self::config_root_namespace()) + 1);
     $uri = str_replace('_', '-', strtolower($uri));
     $uri = str_replace('\\', '/', $uri);
     if ( $data )
@@ -391,7 +401,7 @@ abstract class Component extends CoreElement
       $uri .= '?' . http_build_query($input);
     }
 
-    return self::$_base_uri . $uri;
+    return self::config_base_uri() . $uri;
   }
 
 
@@ -436,13 +446,13 @@ abstract class Component extends CoreElement
     $uri = '' . $uri;
     if ( $uri_has_prefix )
     {
-      $prefix     = self::$_base_uri;
+      $prefix     = self::config_base_uri();
       $prefix_len = strlen($prefix);
       if ( substr($uri, 0, $prefix_len) !== $prefix ) return NULL;
       $uri = substr($uri, $prefix_len);
     }
     $segments = explode('/', str_replace('-', '_', strtolower($uri)));
-    if ( static::$_root_namespace ) array_unshift($segments, static::$_root_namespace);
+    if ( ($namespace = static::config_root_namespace()) ) array_unshift($segments, $namespace);
     $class = implode('\\', $segments);
     if ( !class_exists($class) ) return NULL;
 
@@ -539,9 +549,9 @@ abstract class Component extends CoreElement
    */
   static public function spl_autoload( $class )
   {
-    if ( substr($class, 0, strlen(static::$_root_namespace) + 1) === static::$_root_namespace . '\\' )
+    if ( substr($class, 0, strlen($namespace = static::config_root_namespace()) + 1) === $namespace . '\\' )
     {
-      require_once self::_get_base_path($class) . '/component.php';
+      require_once static::_get_base_path($class) . '/component.php';
     }
   }
 
@@ -568,7 +578,7 @@ abstract class Component extends CoreElement
       $cache[$class] = str_replace(
         '\\', '.', str_replace(
           '_', '-', strtolower(substr(
-            $class, strlen(static::$_root_namespace) + 1
+            $class, strlen(static::config_root_namespace()) + 1
           ))
         )
       );
@@ -634,22 +644,19 @@ abstract class Component extends CoreElement
 
 
   /**
-   * @param null|string $components_path
-   * @param null|string $components_namespace
-   * @param null|string $uri_prefix
-   * @param bool $debug_mode
-   * @throws Exception
+   * @param array $config
+   * @param bool $register_autoload
+   * @return bool
    */
-  static public function configure( $components_path = NULL, $components_namespace = NULL, $uri_prefix = NULL, $debug_mode = FALSE )
+  static public function configure( array $config = array(), $register_autoload = TRUE )
   {
-    static $configured = FALSE;
-    if ( $configured ) throw new Exception("huafu/components has already been configured");
-    $configured        = TRUE;
-    self::$_debug_mode = (bool)$debug_mode;
-    if ( $components_namespace ) self::$_root_namespace = (string)$components_namespace;
-    if ( $uri_prefix != NULL ) self::$_base_uri = (string)$uri_prefix;
-    if ( $components_path ) self::$_root_path = $components_path;
-    spl_autoload_register(array(__CLASS__, 'spl_autoload'));
+    $class = get_called_class();
+    if ( !($return = static::_configure($config, $class)) && $register_autoload )
+    {
+      spl_autoload_register(array($class, 'spl_autoload'));
+    }
+
+    return $return;
   }
 
 
@@ -806,7 +813,7 @@ abstract class Component extends CoreElement
     }
     catch ( \Exception $e )
     {
-      if ( self::$_debug_mode )
+      if ( $this->config_debug_mode )
       {
         $content = '<h3>Error in component <var>' . static::component_name() . '</var>:</h3>'
           . '<pre>' . htmlentities($e->__toString()) . '</pre>';
@@ -870,11 +877,11 @@ abstract class Component extends CoreElement
    * @param string $class
    * @return string
    */
-  private static function _get_base_path( $class = NULL )
+  protected static function _get_base_path( $class = NULL )
   {
     if ( $class === NULL ) $class = get_called_class();
 
-    return self::$_root_path . '/' . strtolower(str_replace('\\', '/', substr($class, strlen(self::$_root_namespace) + 1)));
+    return static::config_root_path() . '/' . strtolower(str_replace('\\', '/', substr($class, strlen(static::config_root_namespace()) + 1)));
   }
 
   /**

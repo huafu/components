@@ -15,13 +15,8 @@ namespace Huafu\Html\VirtualDom;
  */
 class Element extends CoreElement
 {
-  /** @var string[] */
-  static public $lonely_tags = array('img', 'hr', 'link');
-  /** @var callable */
-  static public $string_is_html_callback = NULL;
-
   /** @var Node[] */
-  protected $_children = array();
+  private $_children = array();
 
   /**
    * @param null|string $tag
@@ -38,7 +33,7 @@ class Element extends CoreElement
     }
     else
     {
-      $this->_children = in_array($this->tag, self::$lonely_tags, TRUE) ? NULL : array();
+      $this->_children = in_array($this->tag, $this->config_lonely_tags, TRUE) ? NULL : array();
     }
   }
 
@@ -164,9 +159,9 @@ class Element extends CoreElement
    */
   static private function _string_is_html( &$string )
   {
-    if ( self::$string_is_html_callback )
+    if ( ($callback = static::config_string_is_html_callback()) )
     {
-      return call_user_func_array(self::$string_is_html_callback, array(&$string));
+      return call_user_func_array($callback, array(&$string));
     }
 
     return FALSE;
@@ -203,6 +198,6 @@ class Element extends CoreElement
    */
   static private function _is_html( $data )
   {
-    return is_object($data) && !in_array(get_class($data), self::$text_object_classes, TRUE);
+    return is_object($data) && !in_array(get_class($data), static::config_text_object_classes(), TRUE);
   }
 }

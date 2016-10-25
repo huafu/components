@@ -17,22 +17,14 @@ class Text extends Node
 {
   /** @var string */
   public $text;
-  /** @var int */
-  public $ent_type;
-  /** @var string */
-  public $charset;
 
   /**
    * @param string $text
-   * @param null|int $ent_type
-   * @param null|string $charset
    */
-  protected function _construct( $text = '', $ent_type = NULL, $charset = NULL )
+  protected function _construct( $text = '' )
   {
     parent::_construct();
-    $this->text     = $text;
-    $this->ent_type = $ent_type;
-    $this->charset  = $charset;
+    $this->text = $text;
   }
 
 
@@ -62,7 +54,8 @@ class Text extends Node
   {
     return htmlentities(
       '' . $this->text,
-      $this->ent_type === NULL ? self::$default_ent_type : $this->ent_type,
-      $this->charset === NULL ? self::$default_charset : $this->charset);
+      $this->config_ent_type,
+      $this->config_charset
+    );
   }
 }

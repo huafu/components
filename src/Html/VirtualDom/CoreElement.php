@@ -12,11 +12,22 @@ namespace Huafu\Html\VirtualDom;
  * @package Huafu\Html\VirtualDom
  *
  * @method static static create(null|string $tag = NULL, null|string|array $attributes = NULL, null|mixed $content = NULL)
+ *
+ * @method static string[] config_lonely_tags($default = NULL)
+ * @method static string[] config_text_object_classes($default = NULL)
+ * @method static callable config_string_is_html_callback($default = NULL)
+ *
+ * @property string[] config_lonely_tags = array('img', 'hr', 'link')
+ * @property string[] config_text_object_classes = array()
+ * @property callable config_string_is_html_callback = null
  */
 abstract class CoreElement extends Node
 {
-  /** @var string[] */
-  static public $text_object_classes = array();
+  static protected $_default_class_config = array(
+    'lonely_tags'             => array('img', 'hr', 'link'),
+    'string_is_html_callback' => NULL,
+    'text_object_classes'     => array(),
+  );
 
   /** @var string */
   public $tag = 'div';
@@ -144,13 +155,13 @@ abstract class CoreElement extends Node
     foreach ( $attrs as $key => $value )
     {
       if ( $value === NULL ) continue;
-      if ( is_object($value) && in_array(get_class($value), self::$text_object_classes, TRUE) ) $value = '' . $value;
+      if ( is_object($value) && in_array(get_class($value), $this->config_text_object_classes, TRUE) ) $value = '' . $value;
       // we need to json_encode the value if it's a data attribute and its value is not scalar
       if ( substr($key, 0, 5) === 'data-' && (!is_scalar($value) || is_bool($value)) )
       {
         $value = json_encode($value);
       }
-      $out .= ' ' . $key . '="' . htmlentities($value, ENT_QUOTES, self::$default_charset) . '"';
+      $out .= ' ' . $key . '="' . htmlentities($value, $this->config_ent_type, $this->config_charset) . '"';
     }
     $out .= '>';
 

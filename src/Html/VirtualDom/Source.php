@@ -60,8 +60,8 @@ class Source extends Node
   {
     $this->source .= htmlentities(
       $text,
-      $quotes === NULL ? self::$default_ent_type : $quotes,
-      $charset === NULL ? self::$default_charset : $charset
+      $quotes === NULL ? $this->config_ent_type : $quotes,
+      $charset === NULL ? $this->config_charset : $charset
     );
 
     return $this;
@@ -77,8 +77,8 @@ class Source extends Node
   {
     $this->source = htmlentities(
         $text,
-        $quotes === NULL ? self::$default_ent_type : $quotes,
-        $charset === NULL ? self::$default_charset : $charset
+        $quotes === NULL ? $this->config_ent_type : $quotes,
+        $charset === NULL ? $this->config_charset : $charset
       )
       . $this->source;
 

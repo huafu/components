@@ -6,16 +6,25 @@
 
 namespace Huafu\Html\VirtualDom;
 
+use Huafu\Lang\Configurable;
+
 /**
  * Class Node
  * @package Huafu\Html\VirtualDom
+ *
+ * @property string $config_charset = 'UTF-8'
+ * @property string $config_ent_type = ENT_COMPAT
+ * @method static string config_charset($default = NULL)
+ * @method static int config_ent_type($default = NULL)
  */
 abstract class Node
 {
-  /** @var string */
-  public static $default_charset = 'UTF-8';
-  /** @var int */
-  public static $default_ent_type = ENT_COMPAT;
+  use Configurable;
+
+  protected static $_default_class_config = array(
+    'charset'  => 'UTF-8',
+    'ent_type' => ENT_COMPAT,
+  );
 
   abstract public function __toString();
 
@@ -48,15 +57,5 @@ abstract class Node
     call_user_func_array(array($node, '_construct'), $args);
 
     return $node;
-  }
-
-  /**
-   * @param array $args
-   * @param string $self
-   * @return string
-   */
-  static public function _class_for_args( array $args, $self )
-  {
-    return $self;
   }
 }
