@@ -204,7 +204,7 @@ abstract class Component extends CoreElement
    */
   public function css_selector( $suffix = NULL )
   {
-    return self::_css_escape($this->get_id($suffix));
+    return '#' . self::_css_escape($this->get_id($suffix));
   }
 
   /**
