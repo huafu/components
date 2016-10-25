@@ -491,7 +491,7 @@ abstract class Component extends CoreElement
   {
     if ( !$class ) $class = get_called_class();
 
-    return self::_resolve_default_resources($class, __METHOD__, $class::DEFAULT_STYLESHEET_FILE);
+    return self::_resolve_default_resources($class, __FUNCTION__, $class::DEFAULT_STYLESHEET_FILE);
   }
 
   /**
@@ -502,7 +502,7 @@ abstract class Component extends CoreElement
   {
     if ( !$class ) $class = get_called_class();
 
-    return self::_resolve_default_resources($class, __METHOD__, $class::DEFAULT_JAVASCRIPT_FILE);
+    return self::_resolve_default_resources($class, __FUNCTION__, $class::DEFAULT_JAVASCRIPT_FILE);
   }
 
 
