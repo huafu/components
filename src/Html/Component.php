@@ -55,7 +55,7 @@ abstract class Component extends CoreElement
   static protected $_used_components = array();
 
   /** @var array */
-  protected $_attribute_bindings = ['id'];
+  protected $_attribute_bindings = [];
 
   /**
    * @var bool
@@ -67,7 +67,7 @@ abstract class Component extends CoreElement
    */
   protected final function _construct( $data = NULL, $_dummy = NULL )
   {
-    parent::_construct(NULL, array('class' => 'component', 'data-component' => static::component_name()));
+    parent::_construct();
 
     $merged = static::_merged_data();
     // inject merged props first
@@ -551,8 +551,7 @@ abstract class Component extends CoreElement
 
     $parent = get_parent_class($class);
     $list   = self::used_components($parent);
-    $prop   = self::_class($class)->getProperty('_used_components');
-    if ( $prop->getDeclaringClass()->getName() === $class )
+    if ( self::_class($class)->hasProperty('_used_components') )
     {
       $list = array_merge($list, $class::$_used_components);
     }
@@ -704,7 +703,7 @@ abstract class Component extends CoreElement
         }
         else if ( is_array($val['type']) )
         {
-          $val['type'] = static::normalize_merged_data($name, $value['type']);
+          $val['type'] = static::normalize_merged_data($name, $val['type']);
         }
         $new_value[$key] = $val;
       }
@@ -788,11 +787,7 @@ abstract class Component extends CoreElement
     {
       $out = array();
     }
-    if (
-      $my_class !== __CLASS__
-      && ($prop = $class->getProperty('_input_config'))
-      && $prop->getDeclaringClass()->getName() === $my_class
-    )
+    if ( $my_class !== __CLASS__ && $class->hasProperty('_input_config') )
     {
       foreach ( $my_class::$_input_config as $input_name => $data_conf )
       {
@@ -1066,39 +1061,49 @@ abstract class Component extends CoreElement
     static $cache = array();
     $my_class = $class ? $class : get_called_class();
     if ( isset($cache[$my_class]) ) return $cache[$my_class];
-    if ( $my_class === __CLASS__ ) return $cache[$my_class] = array();
 
     $class        = self::_class($my_class);
     $parent_class = $class->getParentClass();
-    $prop         = $class->getProperty('_merged_data_names');
+    $prop         = $class->hasProperty('_merged_data_names')
+      ? $class->getProperty('_merged_data_names')
+      : NULL;
     $defaults     = $class->getDefaultProperties();
 
-    // get parent class values
-    $data = self::_merged_data($parent_class->getName());
-
-    // merge known ones
-    foreach ( $data as $name => &$value )
+    if ( $parent_class )
     {
-      $p = $class->getProperty($name);
-      if ( $p->getDeclaringClass()->getName() === $my_class )
+      // get parent class values
+      $data = self::_merged_data($parent_class->getName());
+
+      // merge known ones
+      foreach ( $data as $name => &$value )
       {
-        $val   = $my_class::normalize_merged_data($name, $defaults[$name]);
-        $value = self::_merge($name, $value, $val);
+        if ( $class->hasProperty($name) )
+        {
+          $val   = static::normalize_merged_data($name, $defaults[$name]);
+          $value = self::_merge($name, $value, $val);
+        }
       }
+      unset($value);
     }
-    unset($value);
+    else
+    {
+      $data = array('attributes' => array(
+        'class'          => 'component',
+        'data-component' => static::component_name()
+      ));
+    }
 
     // add possible new ones
-    if ( $prop->getDeclaringClass()->getName() === $my_class )
+    if ( $prop )
     {
-      foreach ( $prop->getValue() as $name )
+      foreach ( $my_class::$_merged_data_names as $name )
       {
         // if it was already declared in parent class, do not handle it
         if ( isset($data[$name]) ) continue;
 
         if ( $class->hasProperty($name) )
         {
-          $val = $my_class::normalize_merged_data($name, $defaults[$name]);
+          $val = static::normalize_merged_data($name, $defaults[$name]);
         }
         else
         {
