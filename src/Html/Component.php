@@ -36,8 +36,6 @@ abstract class Component extends CoreElement
   static private $_standalone_instance = NULL;
   /** @var Component[] */
   static private $_instances = array();
-  /** @var callable */
-  static private $_include_resource = NULL;
 
   /** @var array */
   static protected $_default_class_config = array(
@@ -48,13 +46,16 @@ abstract class Component extends CoreElement
   );
 
   /** @var string[] */
-  static protected $_merged_data_names = array('attributes');
+  static protected $_merged_data_names = array('attributes', '_attribute_bindings');
   /** @var bool */
   static protected $_is_public = NULL;
   /** @var string[] */
   static protected $_input_config = array();
   /** @var string[] */
   static protected $_used_components = array();
+
+  /** @var array */
+  protected $_attribute_bindings = ['id'];
 
   /**
    * @var bool
@@ -675,6 +676,101 @@ abstract class Component extends CoreElement
 
 
   /**
+   * @param string $name
+   * @param array|null $value
+   * @return array
+   */
+  static public function normalize_merged_data( $name, $value )
+  {
+    $value = $value ?: array();
+    if ( $name === '_attribute_bindings' )
+    {
+      $new_value = array();
+      foreach ( $value as $key => $val )
+      {
+        if ( is_int($key) ) $key = $val;
+        if ( is_string($val) )
+        {
+          $val = array('source' => $val);
+        }
+        else if ( !isset($val['source']) )
+        {
+          $val['source'] = $key;
+        }
+        // ensure `type` for faster reading later without testing existence
+        if ( !isset($val['type']) )
+        {
+          $val['type'] = NULL;
+        }
+        else if ( is_array($val['type']) )
+        {
+          $val['type'] = static::normalize_merged_data($name, $value['type']);
+        }
+        $new_value[$key] = $val;
+      }
+      $value = $new_value;
+    }
+
+    return $value;
+  }
+
+
+  /**
+   * @param string $name
+   * @param string|array $type
+   * @param Component $src_obj
+   * @param string $src_name
+   * @param string $src_path
+   * @return array|float|int|mixed|null|string
+   * @throws Exception
+   */
+  public static function serialize_attribute( $name, $type, Component $src_obj, $src_name, $src_path )
+  {
+    if ( is_array($type) )
+    {
+      $value = array();
+      foreach ( $type as $key => $conf )
+      {
+        $src         = $conf['source'];
+        $value[$key] = static::serialize_attribute("{$name}.{$key}", $conf['type'], $src_obj, $src, "{$src_path}.{$src}");
+      }
+
+      return $value;
+    }
+    $value = $src_obj->$src_name;
+    if ( $value === NULL ) return NULL;
+    switch ( $type )
+    {
+      case NULL:
+        return $value;
+      case 'string':
+        return '' . $value;
+      case 'int':
+        return intval($value, 10);
+      case 'float':
+        return floatval($value);
+    }
+    throw new Exception("Invalid attribute type `{$type}` for `{$name}`");
+  }
+
+
+  /**
+   * @return array
+   */
+  private function _serialize_bound_attributes()
+  {
+    $attributes = array();
+    foreach ( $this->_attribute_bindings as $key => $conf )
+    {
+      $src              = $conf['source'];
+      $attributes[$key] = static::serialize_attribute($key, $conf['type'], $this, $src, $src);
+    }
+
+    return $attributes;
+  }
+
+
+  /**
    * @param array $in
    * @param bool $i2d
    * @return array
@@ -740,30 +836,23 @@ abstract class Component extends CoreElement
       if ( isset($included[$file]) ) continue;
       $included[$file] = TRUE;
 
-      if ( self::$_include_resource )
+      $kind = explode('.', strtolower($file));
+      if ( count($kind) >= 2 )
       {
-        $out .= call_user_func(self::$_include_resource, $file);
-      }
-      else
-      {
-        $kind = explode('.', strtolower($file));
-        if ( count($kind) >= 2 )
+        $kind = array_pop($kind);
+        if ( $kind === 'css' )
         {
-          $kind = array_pop($kind);
-          if ( $kind === 'css' )
-          {
-            $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
-              . static::get_resource_content($file, $kind)
-              . (is_string($source_url) ? "\n" . '/*# sourceURL=' . $source_url . ' */' : '')
-              . '</style>';
-          }
-          else if ( $kind === 'js' )
-          {
-            $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
-              . static::get_resource_content($file, $kind)
-              . (is_string($source_url) ? "\n" . '//# sourceURL=' . $source_url : '')
-              . '</script>';
-          }
+          $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
+            . static::get_resource_content($file, $kind)
+            . (is_string($source_url) ? "\n" . '/*# sourceURL=' . $source_url . ' */' : '')
+            . '</style>';
+        }
+        else if ( $kind === 'js' )
+        {
+          $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
+            . static::get_resource_content($file, $kind)
+            . (is_string($source_url) ? "\n" . '//# sourceURL=' . $source_url : '')
+            . '</script>';
         }
       }
     }
@@ -862,7 +951,13 @@ abstract class Component extends CoreElement
   {
     $content = '';
     $this->before_render();
-    if ( $in_tag ) $content .= $this->open_tag();
+
+    if ( $in_tag )
+    {
+      // build the bound attributes
+      $bound_attributes = $this->_serialize_bound_attributes();
+      $content .= $this->open_tag($bound_attributes);
+    }
     // null content means lonely tag
     if ( ($body = $this->render_content()) !== NULL ) $content .= $body . ($in_tag ? $this->close_tag() : '');
     // decorate...
@@ -987,8 +1082,8 @@ abstract class Component extends CoreElement
       $p = $class->getProperty($name);
       if ( $p->getDeclaringClass()->getName() === $my_class )
       {
-        $val = $defaults[$name];
-        if ( $val ) $value = self::_merge($name, $value, $val);
+        $val   = $my_class::normalize_merged_data($name, $defaults[$name]);
+        $value = self::_merge($name, $value, $val);
       }
     }
     unset($value);
@@ -998,11 +1093,12 @@ abstract class Component extends CoreElement
     {
       foreach ( $prop->getValue() as $name )
       {
+        // if it was already declared in parent class, do not handle it
         if ( isset($data[$name]) ) continue;
+
         if ( $class->hasProperty($name) )
         {
-          $val = $defaults[$name];
-          if ( !$val ) $val = array();
+          $val = $my_class::normalize_merged_data($name, $defaults[$name]);
         }
         else
         {
