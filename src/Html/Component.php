@@ -723,7 +723,7 @@ abstract class Component extends CoreElement
    * @return array|float|int|mixed|null|string
    * @throws Exception
    */
-  public static function serialize_attribute( $name, $type, Component $src_obj, $src_name, $src_path )
+  public static function serialize_attribute( $name, $type, $src_obj, $src_name, $src_path )
   {
     if ( is_array($type) )
     {
@@ -736,8 +736,10 @@ abstract class Component extends CoreElement
 
       return $value;
     }
+
     $value = $src_obj->$src_name;
     if ( $value === NULL ) return NULL;
+
     switch ( $type )
     {
       case NULL:
