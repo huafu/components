@@ -45,7 +45,7 @@ abstract class CoreElement extends Node
   {
     parent::_construct();
     if ( $tag ) $this->tag = $tag;
-    if ( $attributes ) $this->attributes = self::merge_attributes($attributes);
+    $this->attributes = self::merge_attributes($this->attributes, $attributes);
   }
 
   /**
