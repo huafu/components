@@ -841,14 +841,14 @@ abstract class Component extends CoreElement
         {
           $out .= '<style type="text/css" data-for-component="' . static::component_name() . '">'
             . static::get_resource_content($file, $kind)
-            . (is_string($source_url) ? "\n" . '/*# sourceURL=' . $source_url . ' */' : '')
+            . (is_string($source_url) ? "\n" . '/*# sourceURL=' . $source_url . "?" . date("Y-m-d-H") . ' */' : '')
             . '</style>';
         }
         else if ( $kind === 'js' )
         {
           $out .= '<script type="text/javascript" data-for-component="' . static::component_name() . '">'
             . static::get_resource_content($file, $kind)
-            . (is_string($source_url) ? "\n" . '//# sourceURL=' . $source_url : '')
+            . (is_string($source_url) ? "\n" . '//# sourceURL=' . $source_url . "?" . date("Y-m-d-H") : '')
             . '</script>';
         }
       }
